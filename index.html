@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><meta name="theme-color" content="#101b20"/><title>STRAFE / laboratorium ruchu</title></head>
+<body>
+<canvas tabindex="0" id="game" aria-label="Mapa 3D"></canvas>
+<div id="hud">
+  <header><output id="fps" aria-label="Klatki na sekundę" aria-live="off">— FPS</output></header>
+  <div class="location"><strong id="location-name">surf_ski_2</strong></div>
+  <div class="run-stats"><div><span>CZAS SESJI</span><strong id="timer">00:00.000</strong></div><div><span>REKORD</span><strong id="best">—</strong></div></div>
+  <div id="toast" role="status"></div>
+  <div class="speed-panel"><div class="state"><i></i><span id="state">GOTOWY DO STARTU</span></div><div class="speed"><strong id="speed">0</strong><span>units / s</span></div><div class="speed-track"><i id="speed-bar"></i></div><div class="speed-meta"><span>MAX <b id="max-speed">0</b></span><span>SKOKI <b id="jumps">0</b></span><span>PRE <b id="pre-speed">0</b></span></div></div>
+  <div class="key-display"><div class="key-row"><kbd data-key="KeyW">W</kbd></div><div class="key-row"><kbd data-key="KeyA">A</kbd><kbd data-key="KeyS">S</kbd><kbd data-key="KeyD">D</kbd></div><div class="key-row"><kbd class="wide" data-key="Space">JUMP</kbd><kbd class="wide" id="duck-key">DUCK</kbd></div></div>
+  <footer><span><b>~ / F1</b> konsola <b>ESC</b> uwolnij mysz</span></footer>
+</div>
+<div id="game-status" role="status">Wczytuję mapę…</div>
+<section id="console" role="dialog" aria-label="Konsola gry" aria-modal="true" hidden>
+  <div class="console-title"><strong>STRAFE / CONSOLE</strong><span>FIZYKA · BINDY · TRENING</span><button id="console-close" aria-label="Zamknij konsolę">ESC / ×</button></div>
+  <div id="console-output" role="log" aria-live="polite"></div>
+  <label class="console-prompt"><span>❯</span><input id="console-input" aria-label="Komenda konsoli" placeholder="np. sv_gravity 800 — help wyświetla komendy" autocomplete="off" spellcheck="false" maxlength="200"/></label>
+
+  <div class="console-hint">ENTER wykonaj · ↑ ↓ historia · TAB uzupełnij · ~ / F1 / ESC powrót do gry · ustawienia zapisują się automatycznie</div>
+</section>
+<script type="module" src="/src/main.js"></script></body></html>

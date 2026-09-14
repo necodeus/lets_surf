@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#12171e"><title>BSP Atlas / inspektor struktury</title></head>
+<body>
+  <header class="topbar"><a class="brand" href="/bsp.html"><span class="brand-mark">B</span> BSP <b>ATLAS</b><small>INSPEKTOR STRUKTURY</small></a><div class="actions"><a href="/">Wróć do gry ↗</a><button id="open-file">Otwórz BSP</button><input type="file" id="file" accept=".bsp" hidden></div></header>
+  <div class="workspace"><aside class="sidebar"><div class="sidebar-head"><span>EKSPLORATOR</span><button id="collapse" title="Zwiń wszystkie sekcje">Zwiń</button></div><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Szukaj sekcji, encji, tekstury…" aria-label="Szukaj w strukturze"></label><nav id="tree" aria-label="Struktura BSP"></nav></aside>
+  <main id="main"><div id="status" role="status">Wczytywanie surf_ski_2.bsp…</div><div id="content"></div></main></div>
+  <footer class="statusbar"><span id="file-status">BSP 30 · little endian</span><span>Pliki pozostają w przeglądarce · tylko odczyt</span></footer>
+  <script type="module" src="/src/inspector/main.js"></script>
+</body></html>

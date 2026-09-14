@@ -1,0 +1,25 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {Player,box,ramp,trace,canOccupy,DT,profiles} from '../src/physics.js';
+import {createWorld,inPortal} from './fixtures/movement-world.js';
+const floor=()=>box(0,-100,0,20000,100,20000);
+const tick=(p,input={},count=128)=>{for(let i=0;i<count;i++)p.step(input);};
+test('ground acceleration caps at 250 and friction stops player',()=>{const p=new Player([floor()],{x:0,y:.03,z:0});tick(p,{forward:1});assert.equal(p.grounded,true);assert.ok(Math.abs(p.velocity.z+250)<.001);tick(p);assert.ok(Math.abs(p.velocity.z)<.001);});
+test('jump follows gravity and returns to floor',()=>{const p=new Player([floor()],{x:0,y:.03,z:0});tick(p,{},1);tick(p,{jumpPressed:true},1);let apex=0;for(let i=0;i<150;i++){tick(p,{},1);apex=Math.max(apex,p.position.y);}assert.ok(apex>43&&apex<46,`${apex}`);assert.equal(p.grounded,true);assert.ok(Math.abs(p.position.y)<.1);});
+test('auto bhop preserves momentum at landing',()=>{const p=new Player([floor()],{x:0,y:.03,z:0},profiles.training);p.velocity.x=600;tick(p,{jump:true},240);assert.ok(p.jumps>=3);assert.ok(Math.abs(p.velocity.x-600)<.01);});
+test('manual jump requires release across landing',()=>{const p=new Player([floor()],{x:0,y:.03,z:0},{autoBhop:false});tick(p,{jump:true},240);assert.equal(p.jumps,1);tick(p,{},1);tick(p,{jump:true},1);assert.equal(p.jumps,2);});
+test('air strafe adds perpendicular speed with directional cap',()=>{const p=new Player([],{x:0,y:1000,z:0});p.velocity.z=-400;tick(p,{right:1},1);assert.ok(p.velocity.x>0);assert.ok(Math.hypot(p.velocity.x,p.velocity.z)>400);tick(p,{right:1},30);assert.ok(Math.abs(p.velocity.x-30)<.01);});
+test('swept hull cannot tunnel through thin wall at high velocity',()=>{const p=new Player([box(0,0,-100,300,300,2)],{x:0,y:10,z:0},{maxVelocity:20000});p.velocity.z=-10000;tick(p,{},3);assert.ok(p.position.z>=-83.1,`${p.position.z}`);assert.ok(Math.abs(p.velocity.z)<.01);});
+test('held duck changes hull after transition and ceiling blocks standing',()=>{
+  const roof=box(0,48,0,300,40,300),p=new Player([floor(),roof],{x:300,y:.03,z:0});
+  tick(p,{duck:true},60);assert.equal(p.height,36);
+  p.position.x=0;assert.equal(canOccupy(p.position,72,p.brushes),false);
+  tick(p,{},1);assert.equal(p.ducked,true);
+  p.position.x=300;tick(p,{},1);assert.equal(p.height,72);
+});
+test('steep ramp slides without grounding',()=>{const r=ramp(0,0,2000,400,800,0);const p=new Player([r],{x:170,y:700,z:-500});p.velocity.z=-400;let surf=false;for(let i=0;i<80;i++){tick(p,{},1);surf ||= p.surfing;}assert.equal(surf,true);assert.equal(p.grounded,false);assert.ok(Math.abs(p.velocity.z+400)<.01);assert.ok(p.position.x>170);});
+test('18 unit steps are walkable',()=>{const p=new Player([floor(),box(0,0,-100,200,16,100)],{x:0,y:.03,z:50});tick(p,{forward:1},70);assert.ok(p.position.y>15,JSON.stringify(p.position));assert.ok(p.position.z<-50);});
+test('spawns are clear on platforms and portal is bounded',()=>{const w=createWorld();for(const spawn of [w.spawn,w.practice]){assert.ok(canOccupy(spawn,72,w.solids));const hit=trace(spawn,{x:0,y:-1,z:0},72,w.solids);assert.ok(hit.normal?.y>.7);}assert.ok(inPortal({x:0,y:60,z:-3900},w.portal));assert.ok(!inPortal(w.spawn,w.portal));});
+test('mixed input remains finite over long course run',()=>{const w=createWorld(),p=new Player(w.solids,w.spawn);for(let i=0;i<5000;i++){p.step({forward:1,right:Math.sin(i*.02)>0?1:-1,yaw:Math.sin(i*.003),jump:i%100<20,duck:i%130<10},DT);assert.ok(Object.values(p.position).every(Number.isFinite));assert.ok(Object.values(p.velocity).every(Number.isFinite));if(p.position.y<w.killY)p.reset(w.spawn);}});
+test('classic surf route reaches the finish with a turn between ramps',()=>{const w=createWorld(),p=new Player(w.solids,w.spawn);let finished=false,surfFrames=0;for(let i=0;i<1600;i++){p.step(p.position.z>-145?{forward:1}:{right:-1,yaw:p.position.z < -1400 && p.position.z > -2400 && p.position.x > -80 ? .4 : 0});if(p.surfing)surfFrames++;if(inPortal(p.position,w.portal)){finished=true;break;}if(p.position.y<w.killY)break;}assert.ok(surfFrames>100);assert.ok(finished);p.reset(w.spawn);assert.deepEqual(p.position,w.spawn);assert.deepEqual(p.velocity,{x:0,y:0,z:0});assert.equal(p.jumps,0);});
+test('wheel jump pulse near landing is buffered in manual mode',()=>{const p=new Player([floor()],{x:0,y:3.1,z:0},{autoBhop:false,jumpBufferMs:90});p.velocity.y=-100;p.step({jumpPressed:true});tick(p,{},4);assert.equal(p.jumps,1);assert.ok(p.velocity.y>0);});
